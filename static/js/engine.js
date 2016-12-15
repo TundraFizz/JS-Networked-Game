@@ -2,16 +2,13 @@ var socket = io();
 
 $(document).ready(onReady);
 
-// $(window).resize(resize)
-// window.onorientationchange = resize;
-
 var width = 480;
 var height = 320;
 
 var wabbitTexture;
 var pirateTexture;
 
-var bunnys = {};
+// var bunnys = {};
 var gravity = 0.5
 
 var maxX = width;
@@ -92,77 +89,15 @@ function MouseUp(event){
 }
 
 function update(){
-
-  // $(document).keydown(function(event){
-  //   console.log(event.which);
-  //   // UP: 87 & 38
-  //   // RIGHT: 36 & 39
-  // });
-  // THIS IS NOT A GOOD WAY OF DOING THINGS, FIX LATER
-  // THIS IS NOT A GOOD WAY OF DOING THINGS, FIX LATER
-  // THIS IS NOT A GOOD WAY OF DOING THINGS, FIX LATER
-  // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-  var timeout, clicker = $("canvas");
-
-  clicker.mousedown(function(){
-    timeout = setInterval(function(){
-      MouseDown();
-    }, 100);
-    return false;
-  });
-
-  $(document).mouseup(function(){
-      clearInterval(timeout);
-      return false;
-  });
-
   renderer.render(stage);
   requestAnimationFrame(update);
 }
-// ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// THIS IS NOT A GOOD WAY OF DOING THINGS, FIX LATER
-// THIS IS NOT A GOOD WAY OF DOING THINGS, FIX LATER
-// THIS IS NOT A GOOD WAY OF DOING THINGS, FIX LATER
 
 //////////////
 // KEYBOARD //
 //////////////
-function keyboard(keyCode) {
-  var key = {};
-  key.code = keyCode;
-  key.isDown = false;
-  key.isUp = true;
-  key.press = undefined;
-  key.release = undefined;
-  //The `downHandler`
-  key.downHandler = function(event) {
-    if (event.keyCode === key.code) {
-      if (key.isUp && key.press) key.press();
-      key.isDown = true;
-      key.isUp = false;
-    }
-    event.preventDefault();
-  };
 
-  //The `upHandler`
-  key.upHandler = function(event) {
-    if (event.keyCode === key.code) {
-      if (key.isDown && key.release) key.release();
-      key.isDown = false;
-      key.isUp = true;
-    }
-    event.preventDefault();
-  };
-
-  //Attach event listeners
-  window.addEventListener(
-    "keydown", key.downHandler.bind(key), false
-  );
-  window.addEventListener(
-    "keyup", key.upHandler.bind(key), false
-  );
-  return key;
-}
+// Put code here
 
 ////////////////////////////
 // MESSAGES TO THE SERVER //
@@ -176,7 +111,7 @@ socket.on("welcome", function(msg){
     bunny.y = msg[i].pos.y;
     bunny.anchor.x = 0.5;
     bunny.anchor.y = 0.5;
-    bunnys[bunny.id] = bunny;
+    // bunnys[bunny.id] = bunny;
     container.addChild(bunny);
   }
 });
@@ -188,22 +123,43 @@ socket.on("new-player", function(msg){
   bunny.y = msg.pos.y;
   bunny.anchor.x = 0.5;
   bunny.anchor.y = 0.5;
-  bunnys[bunny.id] = bunny;
+  // bunnys[bunny.id] = bunny;
   container.addChild(bunny);
 });
 
 socket.on("player-leave", function(msg){
-  container.removeChild(bunnys[msg]);
+  for(var i = 0; i < container.children.length; ++i){
+    if(container.children[i].id == msg)
+    {
+      container.removeChild(container.children[i]);
+      break;
+    }
+  }
+
+  // container.removeChild(bunnys[msg]);
+  // delete bunnys[msg];
 });
 
 socket.on("update-positions", function(msg, pos){
-  bunnys[msg].x = pos.x;
-  bunnys[msg].y = pos.y;
+  // Get something
+  console.log("=====================");
+  for(var i = 0; i < container.children.length; ++i){
+    if(container.children[i].id == msg)
+    {
+      console.log(container.children[i]);
+      container.children[i].x = pos.x;
+      container.children[i].y = pos.y;
+      break;
+    }
+  }
 });
 
 ///////////
 // TRASH //
 ///////////
+
+// $(window).resize(resize)
+// window.onorientationchange = resize;
 
 // function resize(){
 //   var width = $(window).width();

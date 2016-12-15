@@ -15,9 +15,9 @@ var players   = {};
 var pCount    = 0;
 
 io.on("connection", function(socket){
-  process.stdout.write("Incoming connection... ");
+  // process.stdout.write("Incoming connection... ");
 
-  if(pCount == 2){
+  if(pCount == 200){
     console.log("Refused! Too many players.");
     io.to(socket.id).emit("custom", "Too many people!"); // Send to a specific person
     socket.disconnect(socket.id);
@@ -27,7 +27,7 @@ io.on("connection", function(socket){
   var player   = {};
   player.num   = ++pCount;
   player.id    = socket.id;
-  player.pos = {};
+  player.pos   = {};
   player.pos.x = Rand(20, 460);
   player.pos.y = Rand(20, 300);
   player.t     = Rand( 0,   3);
