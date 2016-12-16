@@ -33,8 +33,8 @@ function onReady(){
 
   wabbitTexture = new PIXI.Texture.fromImage("textures.png");
 
-  container = new PIXI.DisplayObjectContainer();
-  container = new PIXI.ParticleContainer(200000, [false, true, false, false, false]);
+  // container = new PIXI.DisplayObjectContainer();
+  container = new PIXI.ParticleContainer(1000000, [false, true, false, false, false]);
   stage.addChild(container);
 
   bunny1 = new PIXI.Texture(wabbitTexture.baseTexture, new PIXI.math.Rectangle(0,  0, 10, 10));
@@ -44,6 +44,7 @@ function onReady(){
 
   bunnyTextures = [bunny1, bunny2, bunny3, bunny4];
   document.addEventListener("keydown", KeyDown);
+  document.addEventListener("keyup",   KeyUp);
 
   // $(renderer.view).mousedown(function(){
   //   MouseDown();
@@ -58,27 +59,83 @@ function onReady(){
   // document.addEventListener("touchend",   MouseUp,   true);
 }
 
-function KeyDown(key){
-  // console.log(key.keyCode);
+var up    = {"pressed": false, "released": false, "down": false};
+var down  = {"pressed": false, "released": false, "down": false};
+var left  = {"pressed": false, "released": false, "down": false};
+var right = {"pressed": false, "released": false, "down": false};
+var q     = {"pressed": false, "released": false, "down": false};
 
+function KeyDown(key){ // console.log(key.keyCode);
   // W or Up Arrow
   if(key.keyCode === 87 || key.keyCode === 38){
-    socket.emit("move-up", null);
+    up.pressed  = true;
+    up.released = false;
+    up.down     = true;
   }
 
   // S or Down Arrow
   else if(key.keyCode === 83 || key.keyCode === 40){
-    socket.emit("move-down", null);
+    down.pressed  = true;
+    down.released = false;
+    down.down     = true;
   }
 
   // A or Left Arrow
   else if(key.keyCode === 65 || key.keyCode === 37){
-    socket.emit("move-left", null);
+    left.pressed  = true;
+    left.released = false;
+    left.down     = true;
   }
 
   // D or Right Arrow
   else if(key.keyCode === 68 || key.keyCode === 39){
-    socket.emit("move-right", null);
+    right.pressed  = true;
+    right.released = false;
+    right.down     = true;
+  }
+
+  // Q
+  else if(key.keyCode === 81){
+    q.pressed  = true;
+    q.released = false;
+    q.down     = true;
+  }
+}
+
+function KeyUp(key){
+  // W or Up Arrow
+  if(key.keyCode === 87 || key.keyCode === 38){
+    up.pressed  = false;
+    up.released = true;
+    up.down     = false;
+  }
+
+  // S or Down Arrow
+  else if(key.keyCode === 83 || key.keyCode === 40){
+    down.pressed  = false;
+    down.released = true;
+    down.down     = false;
+  }
+
+  // A or Left Arrow
+  else if(key.keyCode === 65 || key.keyCode === 37){
+    left.pressed  = false;
+    left.released = true;
+    left.down     = false;
+  }
+
+  // D or Right Arrow
+  else if(key.keyCode === 68 || key.keyCode === 39){
+    right.pressed  = false;
+    right.released = true;
+    right.down     = false;
+  }
+
+  // Q
+  else if(key.keyCode === 81){
+    q.pressed  = false;
+    q.released = true;
+    q.down     = false;
   }
 }
 
@@ -88,9 +145,69 @@ function MouseDown(event){
 function MouseUp(event){
 }
 
+var fpsCounter = 0;
+var lastLoop = new Date;
+
+console.log("==================================");
+setInterval(function(){
+  $("#obj").text(count);
+  $("#fps").text(fpsCounter);
+  console.log(fpsCounter);
+  fpsCounter = 0;
+  console.log("==================================");
+}, 1000);
+
 function update(){
+  UpdatePhysics();
+
   renderer.render(stage);
   requestAnimationFrame(update);
+
+  /////////
+  // FPS //
+  ++fpsCounter;
+  var thisLoop = new Date;
+  // var fps = 1000 / (thisLoop - lastLoop);
+  // console.log(1000 / (thisLoop - lastLoop));
+  lastLoop = thisLoop;
+}
+
+function UpdatePhysics(){
+  if(up.down){
+    socket.emit("move-up", null);
+  }
+  if(down.down){
+    socket.emit("move-down", null);
+  }
+  if(left.down){
+    socket.emit("move-left", null);
+  }
+  if(right.down){
+    socket.emit("move-right", null);
+  }
+
+  // Add a ton of objects to tank our FPS
+  //         0 objects = 60 FPS
+  //   300,000 objects = 50 FPS
+  //   400,000 objects = 38 FPS
+  //   500,000 objects = 30 FPS
+  //   600,000 objects = 25 FPS
+  //   700,000 objects = 22 FPS
+  //   800,000 objects = 20 FPS
+  //   900,000 objects = 17 FPS
+  // 1,000,000 objects = 15 FPS
+  if(q.down){
+    for(var i = 0; i < 100000; ++i){
+      ++count;
+      var bunny = new PIXI.Sprite(bunnyTextures[0]);
+      bunny.id = null;
+      bunny.x = 100;
+      bunny.y = 100;
+      bunny.anchor.x = 0.5;
+      bunny.anchor.y = 0.5;
+      container.addChild(bunny);
+    }
+  }
 }
 
 //////////////
@@ -105,6 +222,7 @@ function update(){
 
 socket.on("welcome", function(msg){
   for (var i in msg){
+    ++count;
     var bunny = new PIXI.Sprite(bunnyTextures[msg[i].t]);
     bunny.id = msg[i].id;
     bunny.x = msg[i].pos.x;
@@ -117,6 +235,7 @@ socket.on("welcome", function(msg){
 });
 
 socket.on("new-player", function(msg){
+  ++count;
   var bunny = new PIXI.Sprite(bunnyTextures[msg.t]);
   bunny.id = msg.id;
   bunny.x = msg.pos.x;
@@ -129,9 +248,9 @@ socket.on("new-player", function(msg){
 
 socket.on("player-leave", function(msg){
   for(var i = 0; i < container.children.length; ++i){
-    if(container.children[i].id == msg)
-    {
+    if(container.children[i].id == msg){
       container.removeChild(container.children[i]);
+      --count;
       break;
     }
   }
@@ -142,11 +261,11 @@ socket.on("player-leave", function(msg){
 
 socket.on("update-positions", function(msg, pos){
   // Get something
-  console.log("=====================");
+  // console.log("=====================");
   for(var i = 0; i < container.children.length; ++i){
     if(container.children[i].id == msg)
     {
-      console.log(container.children[i]);
+      // console.log(container.children[i]);
       container.children[i].x = pos.x;
       container.children[i].y = pos.y;
       break;

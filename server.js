@@ -15,8 +15,6 @@ var players   = {};
 var pCount    = 0;
 
 io.on("connection", function(socket){
-  // process.stdout.write("Incoming connection... ");
-
   if(pCount == 200){
     console.log("Refused! Too many players.");
     io.to(socket.id).emit("custom", "Too many people!"); // Send to a specific person
@@ -34,9 +32,6 @@ io.on("connection", function(socket){
   // player.x     = player.pos.x;
   // player.y     = player.pos.y;
   players[socket.id] = player;
-  // console.log(player);
-
-  // console.log("Accepted! Player", pCount, "with ID:", socket.id);
 
   // Send personal message to new person
   io.to(socket.id).emit("welcome", players);
@@ -47,7 +42,6 @@ io.on("connection", function(socket){
   socket.on("disconnect", function(){
     --pCount;
     var player = players[socket.id];
-    // console.log("Player", player.num, "with ID:", player.id, "disconnected... remaining players:", pCount);
     delete players[socket.id];
     socket.broadcast.emit("player-leave", socket.id);
   });
@@ -87,4 +81,7 @@ function Rand(low, high){
 //////////////////////
 // Helper Functions //
 //////////////////////
-function UpdatePosition(id, pos){io.emit("update-positions", id, pos);}
+function UpdatePosition(id, pos){
+  // console.log(UpdatePosition);
+  io.emit("update-positions", id, pos);
+}
